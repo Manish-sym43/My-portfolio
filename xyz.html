@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DSA Playground — Single-file</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#7c3aed;--glass: rgba(255,255,255,0.03)}
+    *{box-sizing:border-box;font-family:Inter,Segoe UI,system-ui,Arial}
+    body{margin:0;background:linear-gradient(180deg,#071026 0%, var(--bg) 100%);color:#e6eef6}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#4f46e5);display:grid;place-items:center;font-weight:700}
+    nav{display:flex;gap:12px}
+    nav button{background:transparent;border:1px solid rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer}
+    .container{display:grid;grid-template-columns:320px 1fr;gap:20px;padding:20px}
+    .sidebar{background:var(--card);padding:16px;border-radius:12px;height:calc(100vh - 110px);overflow:auto}
+    .search{display:flex;gap:8px;margin-bottom:12px}
+    .search input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
+    .topic{padding:12px;border-radius:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.02);cursor:pointer}
+    .topic h4{margin:0;font-size:14px}
+    .topic p{margin:6px 0 0;color:var(--muted);font-size:13px}
+    main{padding:16px}
+    .card{background:var(--glass);padding:16px;border-radius:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.02)}
+    .hero{display:flex;gap:18px;align-items:center}
+    .hero h1{margin:0;font-size:22px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}
+    .mini-card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:10px;border-radius:10px}
+    .visualizer{display:flex;gap:12px}
+    .vis-canvas{flex:1;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+    .controls{width:320px}
+    .controls label{display:block;font-size:13px;margin:8px 0 6px;color:var(--muted)}
+    .controls input[type=range]{width:100%}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;background:var(--accent);color:white;border:none;cursor:pointer}
+    pre{background:rgba(0,0,0,0.15);padding:12px;border-radius:8px;overflow:auto}
+    footer{padding:12px 24px;color:var(--muted);font-size:13px}
+    @media(max-width:880px){.container{grid-template-columns:1fr} .controls{width:100%} header{padding:12px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">DS</div>
+      <div>
+        <div style="font-weight:700">DSA Playground</div>
+        <div style="font-size:12px;color:var(--muted)">Learn • Visualize • Practice</div>
+      </div>
+    </div>
+    <nav>
+      <button onclick="scrollToId('topics')">Topics</button>
+      <button onclick="scrollToId('visualizer')">Visualizer</button>
+      <button onclick="scrollToId('snippets')">Snippets</button>
+    </nav>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <div class="search">
+        <input id="search" placeholder="Search topics or algorithms" oninput="filterTopics()" />
+        <button class="btn" onclick="randomizeArray()">Randomize</button>
+      </div>
+
+      <div id="topics">
+        <!-- Topics populated by JS -->
+      </div>
+
+      <div style="margin-top:12px;color:var(--muted);font-size:13px">
+        Tip: Click a topic to load notes & snippet. Use visualizer to play sorting algorithms.
+      </div>
+    </aside>
+
+    <main>
+      <section class="card hero">
+        <div>
+          <h1>Interactive DSA Reference</h1>
+          <div style="color:var(--muted);margin-top:6px">This single-file HTML contains topic cards, code snippets, and an in-browser visualizer for common algorithms.</div>
+
+          <div class="grid" style="margin-top:12px">
+            <div class="mini-card">
+              <strong>Topics</strong>
+              <div style="color:var(--muted);font-size:13px">Arrays, Linked Lists, Trees, Graphs, Sorting, Searching</div>
+            </div>
+            <div class="mini-card">
+              <strong>Visualizer</strong>
+              <div style="color:var(--muted);font-size:13px">Step-by-step sorting animations with speed control</div>
+            </div>
+            <div class="mini-card">
+              <strong>Snippets</strong>
+              <div style="color:var(--muted);font-size:13px">Copy-ready JS, C++, and Java pseudocode examples</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="visualizer" class="card">
+        <h3>Sorting Visualizer</h3>
+        <div class="visualizer">
+          <div class="vis-canvas">
+            <canvas id="canvas" width="900" height="220"></canvas>
+            <div style="margin-top:10px;color:var(--muted);font-size:13px">Watching: <span id="algoName">Bubble Sort</span> • Steps: <span id="stepsCount">0</span></div>
+          </div>
+
+          <div class="controls">
+            <label>Algorithm</label>
+            <select id="algo" onchange="changeAlgo()">
+              <option value="bubble">Bubble Sort</option>
+              <option value="insertion">Insertion Sort</option>
+              <option value="selection">Selection Sort</option>
+            </select>
+
+            <label>Speed</label>
+            <input id="speed" type="range" min="1" max="1000" value="200" />
+
+            <label>Array Size</label>
+            <input id="size" type="range" min="5" max="80" value="30" oninput="resizeArray()" />
+
+            <div style="margin-top:10px;display:flex;gap:8px">
+              <button class="btn" onclick="play()">Play</button>
+              <button class="btn" style="background:#334155" onclick="step()">Step</button>
+              <button class="btn" style="background:#111827" onclick="reset()">Reset</button>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <section id="snippets" class="card">
+        <h3>Notes & Snippets</h3>
+        <div style="display:grid;grid-template-columns:1fr 360px;gap:12px">
+          <div>
+            <div id="notes" class="card" style="margin:0;padding:12px;min-height:140px">Select a topic from the left to view brief notes and pseudo-code.</div>
+
+            <div style="margin-top:12px">
+              <h4>Code Snippet</h4>
+              <pre id="snippet">// Select a topic to see a snippet</pre>
+              <div style="margin-top:8px"><button class="btn" onclick="copySnippet()">Copy Snippet</button></div>
+            </div>
+          </div>
+
+          <div>
+            <h4>Quick Quiz</h4>
+            <div style="background:rgba(255,255,255,0.02);padding:12px;border-radius:8px">
+              <div style="font-weight:700">What is the time complexity of Binary Search?</div>
+              <div style="margin-top:8px"><button onclick="answer('A')" class="btn">A) O(log n)</button></div>
+              <div style="margin-top:8px"><button onclick="answer('B')" class="btn" style="background:#475569">B) O(n)</button></div>
+              <div id="answer" style="margin-top:10px;color:var(--muted)"></div>
+            </div>
+
+            <h4 style="margin-top:12px">Cheat Sheet</h4>
+            <div style="background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;color:var(--muted);font-size:13px">
+              <div><strong>Array</strong> — Random access, O(1) index</div>
+              <div><strong>Linked List</strong> — O(n) access, O(1) insert at head</div>
+              <div><strong>BST</strong> — Average O(log n) search, worst O(n)</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer>Built as a single-file DSA playground — edit the HTML to extend topics or add new visualizers.</footer>
+
+  <script>
+    // Topics data
+    const TOPICS = [
+      {id:'arrays',title:'Arrays',desc:'Basics, operations, two pointers, sliding window',notes:'Arrays are contiguous memory structures. Use two-pointers for pairing problems, sliding window for subarray sums.' ,snippet:"// JavaScript: Reverse an array in-place\nfunction reverseInPlace(a){let i=0,j=a.length-1;while(i<j){[a[i],a[j]]=[a[j],a[i]];i++;j--;}return a;}"},
+      {id:'linked',title:'Linked List',desc:'Singly, doubly, cycle detection (Floyd)',notes:'Use slow-fast pointers to detect cycles. For reversing list use iterative three-pointer approach.',snippet:'// C++: Reverse singly linked list\nListNode* reverse(ListNode* head){ListNode* prev=nullptr;while(head){ListNode* nxt=head->next;head->next=prev;prev=head;head=nxt;}return prev;}'} ,
+      {id:'trees',title:'Trees',desc:'BST, traversals, LCA',notes:'Inorder of BST gives sorted order. LCA via binary lift or recursion based on properties.',snippet:'// Java: Inorder traversal recursive\nvoid inorder(Node root){if(root==null) return; inorder(root.left); visit(root); inorder(root.right);}'} ,
+      {id:'graphs',title:'Graphs',desc:'BFS, DFS, shortest paths',notes:'Represent graphs as adjacency list. Use BFS for shortest unweighted paths and Dijkstra for weighted.',snippet:'// JS: BFS\nfunction bfs(adj, s){const q=[s], vis=new Set([s]); while(q.length){const u=q.shift(); for(const v of adj[u]) if(!vis.has(v)){vis.add(v);q.push(v);} }}'} ,
+      {id:'sorting',title:'Sorting',desc:'Bubble, Quick, Merge',notes:'Bubble and insertion are O(n^2) average. Merge and quick are O(n log n) average. Quick worst-case O(n^2).',snippet:'// C++: Merge two sorted halves\nvoid merge(vector<int>&a,int l,int m,int r){/*...*/}'} ,
+      {id:'dp',title:'Dynamic Programming',desc:'Memoization, tabulation',notes:'Identify overlapping subproblems & optimal substructure. Try writing recurrence then memoize.',snippet:'// Pseudocode: Fibonacci with memo\nfunction fib(n): if n<=1 return n; if memo[n] return memo[n]; memo[n]=fib(n-1)+fib(n-2); return memo[n];'}
+    ];
+
+    // Render topics
+    const topicsDiv = document.getElementById('topics');
+    function renderTopics(filter=''){
+      topicsDiv.innerHTML='';
+      TOPICS.filter(t=>t.title.toLowerCase().includes(filter)||t.desc.toLowerCase().includes(filter)).forEach(t=>{
+        const el = document.createElement('div'); el.className='topic'; el.onclick=()=>selectTopic(t.id);
+        el.innerHTML=`<h4>${t.title}</h4><p>${t.desc}</p>`;
+        topicsDiv.appendChild(el);
+      });
+    }
+    renderTopics();
+
+    function filterTopics(){renderTopics(document.getElementById('search').value.toLowerCase())}
+
+    function selectTopic(id){
+      const t=TOPICS.find(x=>x.id===id);
+      if(!t) return; document.getElementById('notes').textContent = t.notes; document.getElementById('snippet').textContent = t.snippet;
+      // scroll main to snippets
+      document.getElementById('snippets').scrollIntoView({behavior:'smooth'});
+    }
+
+    function copySnippet(){navigator.clipboard.writeText(document.getElementById('snippet').textContent).then(()=>alert('Snippet copied'))}
+
+    function answer(opt){ const out=document.getElementById('answer'); out.textContent = (opt==='A')? 'Correct — Binary Search is O(log n).' : 'Incorrect — Binary Search is O(log n) on sorted arrays.' }
+
+    function scrollToId(id){document.getElementById(id).scrollIntoView({behavior:'smooth'})}
+
+    // Simple sorting visualizer implementation (bubble, insertion, selection)
+    const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
+    let arr = []; let steps = []; let playing=false; let stepIndex=0; let algo='bubble';
+
+    function randomizeArray(){const size=+document.getElementById('size').value; arr = Array.from({length:size},()=>Math.floor(Math.random()*200)+5); buildSteps(); drawArray(0,0);}
+    function resizeArray(){randomizeArray();}
+    function changeAlgo(){algo=document.getElementById('algo').value; document.getElementById('algoName').textContent = ({bubble:'Bubble Sort',insertion:'Insertion Sort',selection:'Selection Sort'})[algo]; buildSteps();}
+
+    function buildSteps(){steps=[]; stepIndex=0; const a = arr.slice(); if(!a.length) return; if(algo==='bubble') bubbleSteps(a); else if(algo==='insertion') insertionSteps(a); else selectionSteps(a); document.getElementById('stepsCount').textContent = steps.length;}
+
+    function bubbleSteps(a){const n=a.length; for(let i=0;i<n-1;i++){for(let j=0;j<n-i-1;j++){steps.push({type:'compare',i:j,j:j+1}); if(a[j]>a[j+1]){steps.push({type:'swap',i:j,j:j+1}); [a[j],a[j+1]]=[a[j+1],a[j]];} } } }
+    function insertionSteps(a){for(let i=1;i<a.length;i++){let j=i-1; let key=a[i]; steps.push({type:'pick',i}); while(j>=0 && a[j]>key){steps.push({type:'compare',i:j,j:j+1}); a[j+1]=a[j]; steps.push({type:'move',from:j,to:j+1}); j--; } a[j+1]=key; steps.push({type:'place',pos:j+1,val:key}); }}
+    function selectionSteps(a){for(let i=0;i<a.length;i++){let min=i; for(let j=i+1;j<a.length;j++){steps.push({type:'compare',i:j,j:min}); if(a[j]<a[min]){min=j; steps.push({type:'newmin',min}); } } if(min!==i){steps.push({type:'swap',i:i,j:min}); [a[i],a[min]]=[a[min],a[i]];} }}
+
+    function drawArray(high1=-1,high2=-1){ctx.clearRect(0,0,canvas.width,canvas.height); const w = canvas.width; const h=canvas.height; const pad=8; const len = arr.length; const barW = Math.max(3,(w-2*pad)/len - 2);
+      const maxV = Math.max(...arr,1); for(let i=0;i<len;i++){const x = pad + i*(barW+2); const barH = (arr[i]/maxV)*(h-30); ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x,h-5-barH,barW,barH,4) : ctx.rect(x,h-5-barH,barW,barH);
+        if(i===high1 || i===high2) ctx.fillStyle='rgba(124,58,237,0.95)'; else ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.fill(); ctx.closePath(); }
+    }
+
+    // polyfill for roundRect
+    if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){if(typeof r==='undefined') r=4; this.beginPath(); this.moveTo(x+r,y); this.arcTo(x+w,y,x+w,y+h,r); this.arcTo(x+w,y+h,x,y+h,r); this.arcTo(x,y+h,x,y,r); this.arcTo(x,y,x+w,y,r); this.closePath(); this.rect(x,y,w,h);}}
+
+    function play(){if(playing) return; playing=true; const speed = Math.max(10,1000 - document.getElementById('speed').value); const loop = ()=>{
+        if(stepIndex>=steps.length){playing=false;return;} const s = steps[stepIndex++]; applyStep(s); drawArray(s.i,s.j||s.min||-1); setTimeout(()=>{ if(playing) loop(); }, speed);
+      }; loop();}
+
+    function step(){if(stepIndex>=steps.length) return; const s=steps[stepIndex++]; applyStep(s); drawArray(s.i,s.j||s.min||-1);}
+
+    function reset(){playing=false; stepIndex=0; buildSteps(); drawArray();}
+
+    function applyStep(s){ if(!s) return; if(s.type==='swap'){ [arr[s.i],arr[s.j]]=[arr[s.j],arr[s.i]]; } else if(s.type==='move'){ arr[s.to]=arr[s.from]; } else if(s.type==='place'){ arr[s.pos]=s.val; } }
+
+    // initial
+    (function init(){randomizeArray(); document.getElementById('algoName').textContent='Bubble Sort'; buildSteps(); drawArray();})();
+
+    // keyboard shortcuts
+    document.addEventListener('keydown',e=>{ if(e.key===' ') { e.preventDefault(); play(); } if(e.key==='r'){ reset(); } });
+  </script>
+</body>
+</html>
